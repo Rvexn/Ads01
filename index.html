@@ -38,7 +38,7 @@
     <button class="btn" onclick="generate()">Create Short Link</button>
     
     <div id="out" class="hidden" style="margin-top:20px; padding-top:15px; border-top:1px solid #eee;">
-        <p style="font-size: 14px; font-weight: bold;">Aapka Final Link:</p>
+        <p style="font-size: 14px; font-weight: bold;">🔞 Open Full Video 🔞:</p>
         <input type="text" id="res" readonly style="background: #e9ecef;">
         <button class="btn" style="background: #28a745;" onclick="copyLink()">Copy Link</button>
     </div>
@@ -52,15 +52,15 @@
     <div class="ad-container" id="adBox">
         </div>
 
-    <div id="timer">Intezar Karein: <span id="sec">10</span>s</div>
-    <button id="nextBtn" class="btn hidden" onclick="nextStep()">Continue Next Step</button>
+    <div id="timer">Intezar Karein: <span id="sec">20</span>s</div>
+    <button id="nextBtn" class="btn hidden" onclick="nextStep()">Next Step</button>
 </div>
 
 <script>
     // ==========================================
     // ⚙️ SETTINGS: YAHAN APNA LINK AUR IMAGE BADLEIN
     // ==========================================
-    const MY_AD_IMAGE = "https://i.ibb.co/TDLGF7CF/In-Shot-20260209-215103448.jpg"; // Direct Image Link
+    const MY_AD_IMAGE = "https://i.ibb.co/tw5SBJFd/In-Shot-20260219-191309797.jpg"; // Direct Image Link
     const MY_AD_URL = "https://vairal-tv-channel-231.vercel.app/"; // Image Click karne par kahan bhejna hai
     // ==========================================
 
@@ -120,7 +120,7 @@
         document.getElementById('nextBtn').classList.add('hidden');
         document.getElementById('timer').classList.remove('hidden');
         
-        let timeLeft = 10;
+        let timeLeft = 20;
         document.getElementById('sec').innerText = timeLeft;
 
         let interval = setInterval(() => {
