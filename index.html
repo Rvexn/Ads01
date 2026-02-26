@@ -1,175 +1,159 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <script src="https://pl28729896.effectivegatecpm.com/53/fb/7c/53fb7cda091e4b9396c5f2eeab9fdf7f.js"></script>
-
-    
-    <title>Link Shortener & Monetizer - Custom Ads</title>
+    <title>Telegram Connected Admin Panel</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background: #f0f2f5; text-align: center; padding: 20px; }
-        .box { background: white; max-width: 500px; margin: 30px auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .ad-container { min-height: 260px; background: #fafafa; margin: 20px 0; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-        .ad-container img { max-width: 100%; max-height: 250px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-        .ad-container img:hover { opacity: 0.9; }
-        .btn { background: #007bff; color: white; border: none; padding: 15px 25px; border-radius: 8px; cursor: pointer; width: 100%; font-size: 18px; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
-        #timer { font-size: 24px; color: #e74c3c; font-weight: bold; margin: 15px 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+        .admin-box { width: 500px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #517da2; margin-bottom: 20px; }
+        label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
+        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; }
         .hidden { display: none; }
-        .ad-label { font-size: 10px; color: #999; text-transform: uppercase; margin-bottom: 5px; }
+        .preview-area { margin-top: 10px; text-align: center; }
+        button { width: 100%; padding: 12px; background: #517da2; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; font-weight: bold; }
+        .list-item { background: #f9f9f9; padding: 10px; margin-top: 10px; border-radius: 8px; border-left: 5px solid #517da2; position: relative; font-size: 13px; }
+        .del-btn { position: absolute; right: 10px; top: 10px; color: red; cursor: pointer; font-weight: bold; }
+        .status-msg { font-size: 12px; color: green; text-align: center; margin-top: 5px; display: none; }
     </style>
 </head>
 <body>
 
-<div id="maker" class="box">
-    <h3>🔗 Custom Link Generator</h3>
-    <input type="text" id="urlInput" placeholder="Apna Link Yahan Paste Karein">
+<div class="admin-box">
+    <h2>Bot Auto-Reply Manager</h2>
     
-    <label style="display:block; text-align:left; margin-top:10px; font-size: 14px;">Ads Steps Select Karein:</head></label>
-    <select id="adCount">
-        <option value="1">1 Step (Fast)</option>
-        <option value="2">2 Steps</option>
-        <option value="3">3 Steps</option>
-        <option value="5">5 Steps (High Views)</option>
+    <label>User Keyword (Trigger):</label>
+    <input type="text" id="trigger" placeholder="e.g. video, hello">
+
+    <label>Reply Type:</label>
+    <select id="reply-type" onchange="toggleFields()">
+        <option value="text">Plain Text</option>
+        <option value="image">Image (Gallery से)</option>
+        <option value="video">Video (Gallery से)</option>
+        <option value="link">Button / Link</option>
     </select>
 
-    <button class="btn" onclick="generate()">Create Short Link</button>
-    
-    <div id="out" class="hidden" style="margin-top:20px; padding-top:15px; border-top:1px solid #eee;">
-        <p style="font-size: 14px; font-weight: bold;">🔞 Open Full Video 🔞:</p>
-        <input type="text" id="res" readonly style="background: #e9ecef;">
-        <button class="btn" style="background: #28a745;" onclick="copyLink()">Copy Link</button>
+    <div id="text-field">
+        <label>Reply Message:</label>
+        <input type="text" id="response-text" placeholder="Enter message...">
     </div>
-</div>
 
-<div id="player" class="box hidden">
-    <div style="font-size: 14px; color: #666; font-weight: bold;" id="stepTxt">Step 1 of X</div>
-    <h2 style="font-size: 18px; margin: 10px 0;">Please wait...</h2>
-    
-    <div class="ad-label">ADVERTISEMENT</div>
-    <div class="ad-container" id="adBox">
+    <div id="gallery-field" class="hidden">
+        <label>Select File from Gallery:</label>
+        <input type="file" id="file-input" accept="image/*,video/*" onchange="previewFile()">
+        <div class="preview-area">
+            <p id="loading-text" class="hidden">Processing file...</p>
+            <img id="img-preview" style="max-width:100%; border-radius:8px; display:none;">
+            <video id="vid-preview" style="max-width:100%; border-radius:8px; display:none;" controls></video>
         </div>
+    </div>
 
-    <div id="timer">Intezar Karein: <span id="sec">20</span>s</div>
-    <button id="nextBtn" class="btn hidden" onclick="nextStep()">Next Step</button>
+    <div id="link-field" class="hidden">
+        <label>Button Label:</label>
+        <input type="text" id="btn-label" placeholder="Click Here">
+        <label>Target URL:</label>
+        <input type="text" id="target-url" placeholder="https://google.com">
+    </div>
+
+    <button id="save-btn" onclick="saveAdvancedReply()">Save & Sync to Telegram</button>
+    <p id="status" class="status-msg">Sent to Telegram ✅</p>
+
+    <div id="reply-list"></div>
 </div>
 
 <script>
-    // ==========================================
-    // ⚙️ SETTINGS: YAHAN APNA LINK AUR IMAGE BADLEIN
-    // ==========================================
-    const MY_AD_IMAGE = "https://i.ibb.co/tw5SBJFd/In-Shot-20260219-191309797.jpg"; // Direct Image Link
-    const MY_AD_URL = "https://vairal-tv-channel-231.vercel.app/"; // Image Click karne par kahan bhejna hai
-    // ==========================================
+    // Aapka Telegram Config
+    const BOT_TOKEN = '7938751733:AAEdQC9P6d2T_Q8Ub7pCW3IhmjgxyT5KKkg';
+    const CHAT_ID = '6262892880';
+    
+    let base64File = ""; 
 
-    let current = 1, total = 1, targetLink = "";
-
-    function injectAd() {
-        const adBox = document.getElementById('adBox');
-        adBox.innerHTML = ''; // Purana ad clear karein
-        
-        // Naya Link aur Image element banana
-        const linkTag = document.createElement('a');
-        linkTag.href = MY_AD_URL;
-        linkTag.target = "_blank";
-        
-        const imgTag = document.createElement('img');
-        imgTag.src = MY_AD_IMAGE;
-        imgTag.alt = "Ad Image";
-        
-        linkTag.appendChild(imgTag);
-        adBox.appendChild(linkTag);
+    function toggleFields() {
+        const type = document.getElementById('reply-type').value;
+        document.getElementById('text-field').className = (type === 'text' || type === 'link') ? '' : 'hidden';
+        document.getElementById('gallery-field').className = (type === 'image' || type === 'video') ? '' : 'hidden';
+        document.getElementById('link-field').className = (type === 'link') ? '' : 'hidden';
+        resetPreviews();
     }
 
-    function generate() {
-        let inputUrl = document.getElementById('urlInput').value;
-        if(!inputUrl) { alert("Pehle link dalein!"); return; }
-        
-        let ads = document.getElementById('adCount').value;
-        let encoded = btoa(inputUrl); 
-        let shortUrl = window.location.href.split('?')[0] + "?go=" + encoded + "&s=" + ads;
-        
-        document.getElementById('res').value = shortUrl;
-        document.getElementById('out').classList.remove('hidden');
+    function resetPreviews() {
+        document.getElementById('img-preview').style.display = 'none';
+        document.getElementById('vid-preview').style.display = 'none';
+        base64File = "";
     }
 
-    function copyLink() {
-        let copyText = document.getElementById("res");
-        copyText.select();
-        document.execCommand("copy");
-        alert("Link Copy Ho Gaya!");
+    function previewFile() {
+        const file = document.getElementById('file-input').files[0];
+        const reader = new FileReader();
+        const type = document.getElementById('reply-type').value;
+
+        if (file) {
+            document.getElementById('loading-text').classList.remove('hidden');
+            reader.readAsDataURL(file);
+            reader.onload = function () {
+                base64File = reader.result;
+                document.getElementById('loading-text').classList.add('hidden');
+                if (type === 'image') { document.getElementById('img-preview').src = base64File; document.getElementById('img-preview').style.display = 'block'; }
+                else if (type === 'video') { document.getElementById('vid-preview').src = base64File; document.getElementById('vid-preview').style.display = 'block'; }
+            };
+        }
     }
 
-    window.onload = function() {
-        let params = new URLSearchParams(window.location.search);
-        if(params.has('go')) {
-            document.getElementById('maker').classList.add('hidden');
-            document.getElementById('player').classList.remove('hidden');
+    async function saveAdvancedReply() {
+        const trigger = document.getElementById('trigger').value.toLowerCase().trim();
+        const type = document.getElementById('reply-type').value;
+        if(!trigger) return alert("Trigger word likhen!");
+
+        let data = { type: type };
+        let msgForTelegram = `🚀 *New Auto-Reply Set*\n\nKeyword: ${trigger}\nType: ${type}`;
+
+        if(type === 'text') {
+            data.val = document.getElementById('response-text').value;
+        } else if(type === 'image' || type === 'video') {
+            if(!base64File) return alert("Gallery se file select karein!");
+            data.val = base64File;
+        } else if(type === 'link') {
+            data.val = document.getElementById('response-text').value;
+            data.btnLabel = document.getElementById('btn-label').value;
+            data.btnUrl = document.getElementById('target-url').value;
+        }
+
+        // 1. Save to Local Storage
+        try {
+            let replies = JSON.parse(localStorage.getItem('adv_replies')) || {};
+            replies[trigger] = data;
+            localStorage.setItem('adv_replies', JSON.stringify(replies));
             
-            targetLink = atob(params.get('go'));
-            total = parseInt(params.get('s'));
-            startProcess();
+            // 2. Send Notification to Telegram
+            const teleUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(msgForTelegram)}&parse_mode=Markdown`;
+            await fetch(teleUrl);
+            
+            document.getElementById('status').style.display = 'block';
+            setTimeout(() => { location.reload(); }, 1500);
+        } catch (e) {
+            alert("Error: File size too big for browser storage!");
         }
     }
 
-    function startProcess() {
-        injectAd(); 
-        document.getElementById('stepTxt').innerText = "Step " + current + " of " + total;
-        document.getElementById('nextBtn').classList.add('hidden');
-        document.getElementById('timer').classList.remove('hidden');
-        
-        let timeLeft = 20;
-        document.getElementById('sec').innerText = timeLeft;
-
-        let interval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('sec').innerText = timeLeft;
-            if(timeLeft <= 0) {
-                clearInterval(interval);
-                document.getElementById('timer').classList.add('hidden');
-                document.getElementById('nextBtn').classList.remove('remove'); // Fix: Class hatane ke liye
-                document.getElementById('nextBtn').classList.remove('hidden');
-                
-                if(current == total) {
-                    document.getElementById('nextBtn').innerText = "Get Final Link";
-                    document.getElementById('nextBtn').style.background = "#28a745";
-                }
-            }
-        }, 1000);
-    }
-
-    function nextStep() {
-        if(current < total) {
-            current++;
-            startProcess();
-        } else {
-            window.location.href = targetLink;
+    function showReplies() {
+        const list = document.getElementById('reply-list');
+        const replies = JSON.parse(localStorage.getItem('adv_replies')) || {};
+        list.innerHTML = '<h3 style="margin-top:20px">Current Rules:</h3>';
+        for(let key in replies) {
+            list.innerHTML += `<div class="list-item">
+                <b>User:</b> ${key} | <b>Bot:</b> ${replies[key].type}
+                <span class="del-btn" onclick="deleteReply('${key}')">✖</span>
+            </div>`;
         }
     }
+
+    function deleteReply(key) {
+        let replies = JSON.parse(localStorage.getItem('adv_replies'));
+        delete replies[key];
+        localStorage.setItem('adv_replies', JSON.stringify(replies));
+        location.reload();
+    }
+    showReplies();
 </script>
-
 </body>
-</html>
-<script>
-  atOptions = {
-    'key' : '84793a11e4daa94841fba1d1072d4285',
-    'format' : 'iframe',
-    'height' : 250,
-    'width' : 300,
-    'params' : {}
-  };
-</script>
-<script src="https://www.highperformanceformat.com/84793a11e4daa94841fba1d1072d4285/invoke.js"></script>
-
-<script>
-  atOptions = {
-    'key' : '84793a11e4daa94841fba1d1072d4285',
-    'format' : 'iframe',
-    'height' : 250,
-    'width' : 300,
-    'params' : {}
-  };
-</script>
-<script src="https://www.highperformanceformat.com/84793a11e4daa94841fba1d1072d4285/invoke.js"></script>
+    </html>
