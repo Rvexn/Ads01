@@ -2,154 +2,178 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Gallery Upload Auto-Reply Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Telegram Chat with Banners</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
-        .admin-box { width: 500px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #517da2; margin-bottom: 20px; }
-        label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; }
-        .hidden { display: none; }
-        .preview-area { margin-top: 10px; text-align: center; }
-        #file-preview { max-width: 100%; max-height: 150px; border-radius: 8px; display: none; }
-        button { width: 100%; padding: 12px; background: #517da2; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; font-weight: bold; }
-        .list-item { background: #f9f9f9; padding: 10px; margin-top: 10px; border-radius: 8px; border-left: 5px solid #517da2; position: relative; font-size: 13px; }
-        .del-btn { position: absolute; right: 10px; top: 10px; color: red; cursor: pointer; font-weight: bold; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #e6eff5; display: flex; justify-content: center; align-items: center; height: 100vh; user-select: none; }
+
+        .chat-container { width: 450px; height: 90vh; background: #fff; display: flex; flex-direction: column; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; }
+        
+        /* Header */
+        .header { background: #517da2; color: white; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; font-weight: bold; z-index: 10; }
+
+        /* --- SLIDING BANNER SECTION --- */
+        .banner-container { width: 100%; height: 100px; background: #f0f4f7; overflow: hidden; position: relative; border-bottom: 1px solid #ddd; }
+        .banner-track { display: flex; width: calc(200px * 20); animation: scroll 40s linear infinite; }
+        .banner-track:hover { animation-play-state: paused; } /* Hover karne par ruk jayega */
+        
+        .banner-item { width: 180px; height: 80px; margin: 10px; flex-shrink: 0; position: relative; cursor: pointer; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .banner-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .banner-item:hover img { transform: scale(1.1); }
+        .banner-title { position: absolute; bottom: 0; background: rgba(0,0,0,0.6); color: white; width: 100%; font-size: 10px; text-align: center; padding: 2px 0; }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-200px * 10)); } /* Adjust based on count */
+        }
+
+        /* Chat Area */
+        #chat-box { flex: 1; padding: 15px; overflow-y: auto; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-size: cover; display: flex; flex-direction: column; }
+        
+        .message { margin-bottom: 12px; padding: 10px 14px; border-radius: 15px; max-width: 80%; font-size: 14.5px; position: relative; line-height: 1.4; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .user { background: #effdde; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .bot { background: #fff; align-self: flex-start; border-bottom-left-radius: 2px; }
+        
+        .message img, .message video { max-width: 100%; border-radius: 8px; margin-top: 5px; }
+
+        #typing { font-size: 12px; color: #517da2; padding: 5px 15px; display: none; font-style: italic; }
+
+        /* Input Area */
+        .input-area { padding: 12px; display: flex; align-items: center; background: #fff; border-top: 1px solid #eee; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 12px 18px; border: 1px solid #ddd; border-radius: 25px; outline: none; }
+        .file-label { cursor: pointer; color: #517da2; font-size: 22px; }
+        #file-input { display: none; }
+        .send-btn { background: #517da2; color: white; border: none; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; font-size: 18px; }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
-<div class="admin-box">
-    <h2>Bot Auto-Reply Manager</h2>
+<div class="chat-container">
+    <div class="header">
+        <div>Telegram Secure Bot</div>
+        <div style="font-size: 11px; color: #d1e1f0;">online</div>
+    </div>
+
+    <div class="banner-container">
+        <div class="banner-track" id="banner-list">
+            </div>
+    </div>
+
+    <div id="chat-box"></div>
+    <div id="typing">Bot is typing...</div>
     
-    <label>User Keyword (Sawal):</label>
-    <input type="text" id="trigger" placeholder="e.g. video, hello">
-
-    <label>Reply Type:</label>
-    <select id="reply-type" onchange="toggleFields()">
-        <option value="text">Plain Text</option>
-        <option value="image">Image (Gallery से)</option>
-        <option value="video">Video (Gallery से)</option>
-        <option value="link">Button / Link</option>
-    </select>
-
-    <div id="text-field">
-        <label>Reply Message:</label>
-        <input type="text" id="response-text" placeholder="Enter message...">
+    <div class="input-area">
+        <label class="file-label">📎 <input type="file" id="file-input" accept="image/*,video/*" onchange="handleFileUpload(this)"></label>
+        <input type="text" id="user-input" placeholder="Write a message..." onkeypress="handleEnter(event)">
+        <button class="send-btn" onclick="sendMessage()">➤</button>
     </div>
-
-    <div id="gallery-field" class="hidden">
-        <label id="file-label">Select File from Gallery:</label>
-        <input type="file" id="file-input" accept="image/*,video/*" onchange="previewFile()">
-        <div class="preview-area">
-            <p id="loading-text" class="hidden">Converting file... Please wait.</p>
-            <img id="img-preview" style="max-width:100%; border-radius:8px; display:none;">
-            <video id="vid-preview" style="max-width:100%; border-radius:8px; display:none;" controls></video>
-        </div>
-    </div>
-
-    <div id="link-field" class="hidden">
-        <label>Button Label:</label>
-        <input type="text" id="btn-label" placeholder="Click Here">
-        <label>Target URL:</label>
-        <input type="text" id="target-url" placeholder="https://google.com">
-    </div>
-
-    <button id="save-btn" onclick="saveAdvancedReply()">Save Auto-Reply</button>
-
-    <div id="reply-list"></div>
 </div>
 
 <script>
-    let base64File = ""; // File data store karne ke liye
+    const BOT_TOKEN = '7938751733:AAEdQC9P6d2T_Q8Ub7pCW3IhmjgxyT5KKkg';
+    const CHAT_ID = '6262892880';
+    let lastUpdateId = 0;
 
-    function toggleFields() {
-        const type = document.getElementById('reply-type').value;
-        document.getElementById('text-field').className = (type === 'text' || type === 'link') ? '' : 'hidden';
-        document.getElementById('gallery-field').className = (type === 'image' || type === 'video') ? '' : 'hidden';
-        document.getElementById('link-field').className = (type === 'link') ? '' : 'hidden';
-        
-        // Reset previews
-        document.getElementById('img-preview').style.display = 'none';
-        document.getElementById('vid-preview').style.display = 'none';
-        base64File = "";
+    // 1. Banner Setup (10 Images)
+    const banners = [
+        { title: "School", img: "https://picsum.photos/200/100?random=1" },
+        { title: "New Movie", img: "https://picsum.photos/200/100?random=2" },
+        { title: "Offer 1", img: "https://picsum.photos/200/100?random=3" },
+        { title: "Help Me", img: "https://picsum.photos/200/100?random=4" },
+        { title: "Join Group", img: "https://picsum.photos/200/100?random=5" },
+        { title: "Premium", img: "https://picsum.photos/200/100?random=6" },
+        { title: "Contact Us", img: "https://picsum.photos/200/100?random=7" },
+        { title: "Tutorial", img: "https://picsum.photos/200/100?random=8" },
+        { title: "About", img: "https://picsum.photos/200/100?random=9" },
+        { title: "Support", img: "https://picsum.photos/200/100?random=10" }
+    ];
+
+    const track = document.getElementById('banner-list');
+    // Double banners for seamless loop
+    [...banners, ...banners].forEach(b => {
+        const div = document.createElement('div');
+        div.className = 'banner-item';
+        div.onclick = () => { bannerClick(b.title) };
+        div.innerHTML = `<img src="${b.img}"><div class="banner-title">${b.title}</div>`;
+        track.appendChild(div);
+    });
+
+    function bannerClick(title) {
+        document.getElementById('user-input').value = title;
+        sendMessage(); // Auto Send
     }
 
-    // Gallery se file select karke Base64 banana
-    function previewFile() {
-        const file = document.getElementById('file-input').files[0];
-        const reader = new FileReader();
-        const type = document.getElementById('reply-type').value;
+    // 2. Chat Logic (Same as before with security)
+    function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
 
-        if (file) {
-            document.getElementById('loading-text').classList.remove('hidden');
-            reader.readAsDataURL(file);
-            reader.onload = function () {
-                base64File = reader.result;
-                document.getElementById('loading-text').classList.add('hidden');
+    async function sendMessage() {
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        appendMessage(text, 'user');
+        input.value = '';
+
+        const advReplies = JSON.parse(localStorage.getItem('adv_replies')) || {};
+        const triggerKey = text.toLowerCase();
+
+        if (advReplies[triggerKey]) {
+            const reply = advReplies[triggerKey];
+            showTyping(true);
+            setTimeout(() => {
+                showTyping(false);
+                let html = '';
+                if (reply.type === 'text') html = reply.val;
+                else if (reply.type === 'image') html = `<img src="${reply.val}" oncontextmenu="return false;">`;
+                else if (reply.type === 'video') html = `<video src="${reply.val}" controls controlsList="nodownload" oncontextmenu="return false;"></video>`;
+                else if (reply.type === 'link') html = `${reply.val}<br><br><a href="${reply.btnUrl}" target="_blank" style="display:block; background:#517da2; color:white; padding:10px; text-align:center; border-radius:5px; text-decoration:none;">${reply.btnLabel}</a>`;
                 
-                if (type === 'image') {
-                    const img = document.getElementById('img-preview');
-                    img.src = base64File;
-                    img.style.display = 'block';
-                } else if (type === 'video') {
-                    const vid = document.getElementById('vid-preview');
-                    vid.src = base64File;
-                    vid.style.display = 'block';
-                }
-            };
+                appendMessage(html, 'bot', true);
+            }, 1000);
         }
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(text)}`);
     }
 
-    function saveAdvancedReply() {
-        const trigger = document.getElementById('trigger').value.toLowerCase().trim();
-        const type = document.getElementById('reply-type').value;
-        
-        if(!trigger) return alert("Trigger word likhen!");
+    function appendMessage(content, sender, isHTML = false) {
+        const chatBox = document.getElementById('chat-box');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${sender}`;
+        if (isHTML) msgDiv.innerHTML = content;
+        else msgDiv.innerText = content;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
-        let data = { type: type };
+    function showTyping(status) { document.getElementById('typing').style.display = status ? 'block' : 'none'; }
 
-        if(type === 'text') {
-            data.val = document.getElementById('response-text').value;
-        } else if(type === 'image' || type === 'video') {
-            if(!base64File) return alert("Pehle Gallery se file select karein!");
-            data.val = base64File; // Base64 data save hoga
-        } else if(type === 'link') {
-            data.val = document.getElementById('response-text').value;
-            data.btnLabel = document.getElementById('btn-label').value;
-            data.btnUrl = document.getElementById('target-url').value;
-        }
+    // Media and Updates logic...
+    async function handleFileUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const type = file.type.startsWith('image/') ? 'photo' : 'video';
+        const mediaUrl = URL.createObjectURL(file);
+        appendMessage(type === 'photo' ? `<img src="${mediaUrl}">` : `<video src="${mediaUrl}" controls controlsList="nodownload"></video>`, 'user', true);
+        const formData = new FormData();
+        formData.append('chat_id', CHAT_ID); formData.append(type, file);
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/send${type.charAt(0).toUpperCase() + type.slice(1)}`, { method: 'POST', body: formData });
+        input.value = '';
+    }
 
+    async function getUpdates() {
         try {
-            let replies = JSON.parse(localStorage.getItem('adv_replies')) || {};
-            replies[trigger] = data;
-            localStorage.setItem('adv_replies', JSON.stringify(replies));
-            alert("Saved Successfully!");
-            location.reload();
-        } catch (e) {
-            alert("File size bahut bada hai! Chhota video try karein (Max 2-4MB).");
-        }
+            const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}`);
+            const data = await res.json();
+            if (data.ok && data.result.length > 0) {
+                data.result.forEach(update => {
+                    lastUpdateId = update.update_id;
+                    if (update.message && update.message.text) appendMessage(update.message.text, 'bot');
+                });
+            }
+        } catch (e) {}
     }
-
-    function showReplies() {
-        const list = document.getElementById('reply-list');
-        const replies = JSON.parse(localStorage.getItem('adv_replies')) || {};
-        list.innerHTML = '<h3 style="margin-top:20px">Current Rules:</h3>';
-        for(let key in replies) {
-            list.innerHTML += `<div class="list-item">
-                <b>User says:</b> ${key} | <b>Bot sends:</b> ${replies[key].type}
-                <span class="del-btn" onclick="deleteReply('${key}')">✖</span>
-            </div>`;
-        }
-    }
-
-    function deleteReply(key) {
-        let replies = JSON.parse(localStorage.getItem('adv_replies'));
-        delete replies[key];
-        localStorage.setItem('adv_replies', JSON.stringify(replies));
-        location.reload();
-    }
-    showReplies();
+    setInterval(getUpdates, 3000);
 </script>
+
 </body>
 </html>
